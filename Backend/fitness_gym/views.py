@@ -156,8 +156,17 @@ class TrainerViewSet(viewsets.ModelViewSet):
             serializer = TrainerAvailabilitySerializer(data=data)
             
             if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                try:
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                except Exception as e:
+                    # Catch database trigger errors (overlapping availability)
+                    error_message = str(e)
+                    if 'overlapping' in error_message.lower() or 'overlap' in error_message.lower():
+                        return Response({
+                            "error": "TRIGGER FIRED: Cannot create overlapping availability slot for this trainer!"
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
         except Trainer.DoesNotExist:
