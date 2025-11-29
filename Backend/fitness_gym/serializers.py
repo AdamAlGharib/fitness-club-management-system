@@ -11,19 +11,9 @@ class TrainerSerializer(serializers.ModelSerializer):
         model = Trainer
         fields = '__all__'
 
-class ClassSessionSerializer(serializers.ModelSerializer):
+class AdministrativeStaffSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ClassSession
-        fields = '__all__'  
-
-class PersonalTrainingSessionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PersonalTrainingSession
-        fields = '__all__'
-
-class GroupClassSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GroupClass
+        model = AdministrativeStaff
         fields = '__all__'
 
 class RoomSerializer(serializers.ModelSerializer):  
@@ -34,11 +24,6 @@ class RoomSerializer(serializers.ModelSerializer):
 class TrainerAvailabilitySerializer(serializers.ModelSerializer):        
     class Meta:
         model = TrainerAvailability
-        fields = '__all__'
-
-class ClassRegistrationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ClassRegistration
         fields = '__all__'
 
 class FitnessGoalSerializer(serializers.ModelSerializer):
@@ -61,18 +46,44 @@ class MaintenanceTicketSerializer(serializers.ModelSerializer):
         model = MaintenanceTicket
         fields = '__all__'
 
-class InvoiceSerializer(serializers.ModelSerializer):
+class RoomBookingSerializer(serializers.ModelSerializer):
+    room_name = serializers.CharField(source='room.name', read_only=True)
+    
     class Meta:
-        model = Invoice
+        model = RoomBooking
         fields = '__all__'
 
-class InvoiceItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = InvoiceItem
-        fields = '__all__'
 
-class PaymentSerializer(serializers.ModelSerializer):
+class RegisterSerializer(serializers.ModelSerializer):
+    date_of_birth = serializers.DateField(required=False, allow_null=True)
+    gender = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    
     class Meta:
-        model = Payment
-        fields = '__all__'
+        model = User
+        fields = ['username', 'id', 'password', 'email', 'first_name', 'last_name', 'date_of_birth', 'gender']
+        extra_kwargs = {'password': {'write_only': True}}
 
+    def create(self, validated_data):
+        # Extract Member-specific fields
+        date_of_birth = validated_data.pop('date_of_birth', None)
+        gender = validated_data.pop('gender', None)
+        
+        # Create User
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            password=validated_data['password'],
+            email=validated_data['email'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+        )
+        
+        # Create Member profile
+        member = Member.objects.create(
+            user=user,
+            date_of_birth=date_of_birth,
+            gender=gender,
+            email=validated_data['email'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+        )
+        return user
