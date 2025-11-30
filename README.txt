@@ -138,11 +138,9 @@ Register as a member via CLI or use provided demo accounts:
 - See attached ER diagram file for entity relationships
 
 # Video Presentation
-Paste your video link here:
 
 https://youtu.be/QvN9UHN-kSE
 
 # GitHub Repository
-Paste your GitHub repo URL here:
 
 https://github.com/AdamAlGharib/fitness-club-management-system
